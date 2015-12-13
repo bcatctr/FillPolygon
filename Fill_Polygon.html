@@ -2,13 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>任意多边形像素填充</title>
+    <title>3D立方体屏幕投影</title>
 </head>
 <body>
     <canvas id="myCanvas" width="800" height="400" style="border:1px solid #c3c3c3;"></canvas>
     <script type="text/javascript" src="Color.js"></script>
     <script type="text/javascript" src="Image.js"></script>
-    <script type="text/javascript" src="Draw_control.js"></script>
     <script>
         var c=document.getElementById("myCanvas");
         var ctx=c.getContext("2d");
@@ -18,14 +17,13 @@
         var img=new RGBAImage(imgData.width,imgData.height,imgData.data);
 
         //please write from here
-
         for(var i=0;i<200;i++){
             for(var j=0;j<29;j++){
                 img.setPixel(i,j,new Color(0,200,0,100))
             }
         }
 
-
+        console.log(20/180);
 
         //reset the canvas image
         imgData=img.toImageData(ctx);
