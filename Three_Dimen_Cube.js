@@ -3,7 +3,7 @@
  */
 //canvas的宽和高
 var width=800;
-var height=400;
+var height=600;
 //class point
 function point(x,y,z,color){
     this.x=x;
@@ -13,7 +13,34 @@ function point(x,y,z,color){
     this.pj_y=-z+height/2;
     this.color=color;
 }
+point.prototype.update = function(){
+    this.pj_x=this.y+width/2;
+    this.pj_y=-this.z+height/2;
+}
+point.prototype.pointRotateYAngle=function(angle1){//对一个点的坐标进行绕y轴旋转变换。
+    var angle=(angle1/180)*Math.PI;
+    var tempX=this.x*Math.cos(angle)-this.z*Math.sin(angle);
+    var tempY=this.y;
+    var tempZ=this.x*Math.sin(angle)+this.z*Math.cos(angle);
+    this.x=tempX;
+    this.y=tempY;
+    this.z=tempZ;
+    this.pj_x=this.y+400;
+    this.pj_y=-this.z+height/2;
 
+}
+point.prototype.pointRotateZAngle=function(angle1){//对一个点的坐标进行绕z轴旋转变换
+    var angle=(angle1/180)*Math.PI;
+    var tempX=this.x*Math.cos(angle)+this.y*Math.sin(angle);
+    var tempY=-this.x*Math.sin(angle)+this.y*Math.cos(angle);
+    var tempZ=this.z;
+    this.x=tempX;
+    this.y=tempY;
+    this.z=tempZ;
+    this.pj_x=this.y+400;
+    this.pj_y=-this.z+height/2;
+    console.log("projection x: "+this.pj_x+"and projection y: "+this.pj_y);
+}
 
 //class line
 function line(startPoint,endPoint,lineColor){
@@ -39,22 +66,26 @@ surface.prototype.getXSum=function(){
     var xSum=this.line1.startPoint.x+this.line1.endPoint.x+this.line3.startPoint.x+this.line3.endPoint.x;
     return xSum;
 }
+
+//八个顶点 旋转基准 全局变量
+var fixXS0_0=new point(100,-100,100,Color.YELLOW);
+var fixXS0_1=new point(100,100,100,Color.YELLOW);
+var fixXS0_2=new point(100,100,-100,Color.RED);
+var fixXS0_3=new point(100,-100,-100,Color.RED);
+var fixXS1_0=new point(-100,-100,100,Color.CYAN);
+var fixXS1_1=new point(-100,100,100,Color.CYAN);
+var fixXS1_2=new point(-100,100,-100,Color.GREEN);
+var fixXS1_3=new point(-100,-100,-100,Color.GREEN);
+
 //class cube
-function cube(XS0,XS1,YS0,YS1,ZS0,ZS1,fixXS0_0,fixXS0_1,fixXS0_2,fixXS0_3,fixXS1_0,fixXS1_1,fixXS1_2,fixXS1_3){
+function cube(XS0,XS1,YS0,YS1,ZS0,ZS1){
     this.XS0=XS0;                       //立方体的六个面 XS0,XS1表示垂直于X轴的两个平面，YS0,YS1,ZS0,ZS1定义类似
     this.XS1=XS1;
     this.YS0=YS0;
     this.YS1=YS1;
     this.ZS0=ZS0;
     this.ZS1=ZS1;
-    this.fixXS0_0 = fixXS0_0;           //八个顶点 旋转基准
-    this.fixXS0_1 = fixXS0_1;
-    this.fixXS0_2 = fixXS0_2;
-    this.fixXS0_3 = fixXS0_3;
-    this.fixXS1_0 = fixXS1_0;
-    this.fixXS1_1 = fixXS1_1;
-    this.fixXS1_2 = fixXS1_2;
-    this.fixXS1_3 = fixXS1_3;
+    //真实立方体的八个顶点
     this.XS0_0 = this.XS0.line1.startPoint;
     this.XS0_1 = this.XS0.line1.endPoint;
     this.XS0_2 = this.XS0.line3.startPoint;
@@ -67,66 +98,216 @@ function cube(XS0,XS1,YS0,YS1,ZS0,ZS1,fixXS0_0,fixXS0_1,fixXS0_2,fixXS0_3,fixXS1
     this.YAxisAngle=0;
     this.ZAxisAngle=0;
 }
+cube.prototype.transform = function(x,y,z){   //从基准正方形开始
+    this.XAxisAngle=x;
+    this.YAxisAngle=y;
+    this.ZAxisAngle=z;
+    var s=Math.sin(this.XAxisAngle/180*Math.PI);
+    var c=Math.cos(this.XAxisAngle/180*Math.PI);
+    this.XS0_0.y=fixXS0_0.y*c+fixXS0_0.z*s;
+    this.XS0_0.z=-fixXS0_0.y*s+fixXS0_0.z*c;
+    this.XS0_1.y=fixXS0_1.y*c+fixXS1_0.z*s;
+    this.XS0_1.z=-fixXS0_1.y*s+fixXS1_0.z*c;
+    this.XS0_2.y=fixXS0_2.y*c+fixXS0_2.z*s;
+    this.XS0_2.z=-fixXS0_2.y*s+fixXS0_2.z*c;
+    this.XS0_3.y=fixXS0_3.y*c+fixXS0_3.z*s;
+    this.XS0_3.z=-fixXS0_3.y*s+fixXS0_3.z*c;
+    this.XS1_0.y=fixXS1_0.y*c+fixXS1_0.z*s;
+    this.XS1_0.z=-fixXS1_0.y*s+fixXS1_0.z*c;
+    this.XS1_1.y=fixXS1_1.y*c+fixXS1_0.z*s;
+    this.XS1_1.z=-fixXS1_1.y*s+fixXS1_0.z*c;
+    this.XS1_2.y=fixXS1_2.y*c+fixXS1_2.z*s;
+    this.XS1_2.z=-fixXS1_2.y*s+fixXS1_2.z*c;
+    this.XS1_3.y=fixXS1_3.y*c+fixXS1_3.z*s;
+    this.XS1_3.z=-fixXS1_3.y*s+fixXS1_3.z*c;
+    //
+    s=Math.sin(this.YAxisAngle/180*Math.PI);
+    c=Math.cos(this.YAxisAngle/180*Math.PI);
+    var temp1 = this.XS0_0.x;
+    var temp2 = this.XS0_0.z;
+    this.XS0_0.x=temp1*c-temp2*s;
+    this.XS0_0.z=temp1*s+temp2*c;
+    temp1 = this.XS0_1.x;
+    temp2 = this.XS0_1.z;
+    this.XS0_1.x=temp1*c-temp2*s;
+    this.XS0_1.z=temp1*s+temp2*c;
+    temp1 = this.XS0_2.x;
+    temp2 = this.XS0_2.z;
+    this.XS0_2.x=temp1*c-temp2*s;
+    this.XS0_2.z=temp1*s+temp2*c;
+    temp1 = this.XS0_3.x;
+    temp2 = this.XS0_3.z;
+    this.XS0_3.x=temp1*c-temp2*s;
+    this.XS0_3.z=temp1*s+temp2*c;
+    temp1 = this.XS1_0.x;
+    temp2 = this.XS1_0.z;
+    this.XS1_0.x=temp1*c-temp2*s;
+    this.XS1_0.z=temp1*s+temp2*c;
+    temp1 = this.XS1_1.x;
+    temp2 = this.XS1_1.z;
+    this.XS1_1.x=temp1*c-temp2*s;
+    this.XS1_1.z=temp1*s+temp2*c;
+    temp1 = this.XS1_2.x;
+    temp2 = this.XS1_2.z;
+    this.XS1_2.x=temp1*c-temp2*s;
+    this.XS1_2.z=temp1*s+temp2*c;
+    temp1 = this.XS1_3.x;
+    temp2 = this.XS1_3.z;
+    this.XS1_3.x=temp1*c-temp2*s;
+    this.XS1_3.z=temp1*s+temp2*c;
+
+    s=Math.sin(this.ZAxisAngle/180*Math.PI);
+    c=Math.cos(this.ZAxisAngle/180*Math.PI);
+    temp1 = this.XS0_0.x;
+    temp2 = this.XS0_0.y;
+    this.XS0_0.x=temp1*c+temp2*s;
+    this.XS0_0.y=-temp1*s+temp2*c;
+    temp1 = this.XS0_1.x;
+    temp2 = this.XS0_1.y;
+    this.XS0_1.x=temp1*c+temp2*s;
+    this.XS0_1.y=-temp1*s+temp2*c;
+    temp1 = this.XS0_2.x;
+    temp2 = this.XS0_2.y;
+    this.XS0_2.x=temp1*c+temp2*s;
+    this.XS0_2.y=-temp1*s+temp2*c;
+    temp1 = this.XS0_3.x;
+    temp2 = this.XS0_3.y;
+    this.XS0_3.x=temp1*c+temp2*s;
+    this.XS0_3.y=-temp1*s+temp2*c;
+    temp1 = this.XS1_0.x;
+    temp2 = this.XS1_0.y;
+    this.XS1_0.x=temp1*c+temp2*s;
+    this.XS1_0.y=-temp1*s+temp2*c;
+    temp1 = this.XS1_1.x;
+    temp2 = this.XS1_1.y;
+    this.XS1_1.x=temp1*c+temp2*s;
+    this.XS1_1.y=-temp1*s+temp2*c;
+    temp1 = this.XS1_2.x;
+    temp2 = this.XS1_2.y;
+    this.XS1_2.x=temp1*c+temp2*s;
+    this.XS1_2.y=-temp1*s+temp2*c;
+    temp1 = this.XS1_3.x;
+    temp2 = this.XS1_3.y;
+    this.XS1_3.x=temp1*c+temp2*s;
+    this.XS1_3.y=-temp1*s+temp2*c;
+    this.XS0_0.update();
+    this.XS0_1.update();
+    this.XS0_2.update();
+    this.XS0_3.update();
+    this.XS1_0.update();
+    this.XS1_1.update();
+    this.XS1_2.update();
+    this.XS1_3.update();
+}
 cube.prototype.x_transform = function(){
     var s=Math.sin(this.XAxisAngle/180*Math.PI);
     var c=Math.cos(this.XAxisAngle/180*Math.PI);
-    this.XS0_0.y=this.fixXS0_0.y*c-this.fixXS0_0.z*s;
-    this.XS0_0.z=this.fixXS0_0.y*s+this.fixXS0_0.z*c;
-    this.XS0_1.y=this.fixXS0_1.y*c-this.fixXS1_0.z*s;
-    this.XS0_1.z=this.fixXS0_1.y*s+this.fixXS1_0.z*c;
-    this.XS0_2.y=this.fixXS0_2.y*c-this.fixXS0_2.z*s;
-    this.XS0_2.z=this.fixXS0_2.y*s+this.fixXS0_2.z*c;
-    this.XS0_3.y=this.fixXS0_3.y*c-this.fixXS0_3.z*s;
-    this.XS0_3.z=this.fixXS0_3.y*s+this.fixXS0_3.z*c;
-    this.XS1_0.y=this.fixXS1_0.y*c-this.fixXS1_0.z*s;
-    this.XS1_0.z=this.fixXS1_0.y*s+this.fixXS1_0.z*c;
-    this.XS1_1.y=this.fixXS1_1.y*c-this.fixXS1_0.z*s;
-    this.XS1_1.z=this.fixXS1_1.y*s+this.fixXS1_0.z*c;
-    this.XS1_2.y=this.fixXS1_2.y*c-this.fixXS1_2.z*s;
-    this.XS1_2.z=this.fixXS1_2.y*s+this.fixXS1_2.z*c;
-    this.XS1_3.y=this.fixXS1_3.y*c-this.fixXS1_3.z*s;
-    this.XS1_3.z=this.fixXS1_3.y*s+this.fixXS1_3.z*c;
+    this.XS0_0.y=fixXS0_0.y*c+fixXS0_0.z*s;
+    this.XS0_0.z=-fixXS0_0.y*s+fixXS0_0.z*c;
+    this.XS0_1.y=fixXS0_1.y*c+fixXS1_0.z*s;
+    this.XS0_1.z=-fixXS0_1.y*s+fixXS1_0.z*c;
+    this.XS0_2.y=fixXS0_2.y*c+fixXS0_2.z*s;
+    this.XS0_2.z=-fixXS0_2.y*s+fixXS0_2.z*c;
+    this.XS0_3.y=fixXS0_3.y*c+fixXS0_3.z*s;
+    this.XS0_3.z=-fixXS0_3.y*s+fixXS0_3.z*c;
+    this.XS1_0.y=fixXS1_0.y*c+fixXS1_0.z*s;
+    this.XS1_0.z=-fixXS1_0.y*s+fixXS1_0.z*c;
+    this.XS1_1.y=fixXS1_1.y*c+fixXS1_0.z*s;
+    this.XS1_1.z=-fixXS1_1.y*s+fixXS1_0.z*c;
+    this.XS1_2.y=fixXS1_2.y*c+fixXS1_2.z*s;
+    this.XS1_2.z=-fixXS1_2.y*s+fixXS1_2.z*c;
+    this.XS1_3.y=fixXS1_3.y*c+fixXS1_3.z*s;
+    this.XS1_3.z=-fixXS1_3.y*s+fixXS1_3.z*c;
+    this.XS0_0.update();
+    this.XS0_1.update();
+    this.XS0_2.update();
+    this.XS0_3.update();
+    this.XS1_0.update();
+    this.XS1_1.update();
+    this.XS1_2.update();
+    this.XS1_3.update();
 };
 cube.prototype.y_transform = function(){
     var s=Math.sin(this.YAxisAngle/180*Math.PI);
     var c=Math.cos(this.YAxisAngle/180*Math.PI);
-    this.XS0_0.x=this.fixXS0_0.x*c+this.fixXS0_0.z*s;
-    this.XS0_0.z=-this.fixXS0_0.x*s+this.fixXS0_0.z*c;
-    this.XS0_1.x=this.fixXS0_1.x*c+this.fixXS0_1.z*s;
-    this.XS0_1.z=-this.fixXS0_1.x*s+this.fixXS0_1.z*c;
-    this.XS0_2.x=this.fixXS0_2.x*c+this.fixXS0_2.z*s;
-    this.XS0_2.z=-this.fixXS0_2.x*s+this.fixXS0_2.z*c;
-    this.XS0_3.x=this.fixXS0_3.x*c+this.fixXS0_3.z*s;
-    this.XS0_3.z=-this.fixXS0_3.x*s+this.fixXS0_3.z*c;
-    this.XS1_0.x=this.fixXS1_0.x*c+this.fixXS1_0.z*s;
-    this.XS1_0.z=-this.fixXS1_0.x*s+this.fixXS1_0.z*c;
-    this.XS1_1.x=this.fixXS1_1.x*c+this.fixXS1_1.z*s;
-    this.XS1_1.z=-this.fixXS1_1.x*s+this.fixXS1_1.z*c;
-    this.XS1_2.x=this.fixXS1_2.x*c+this.fixXS1_2.z*s;
-    this.XS1_2.z=-this.fixXS1_2.x*s+this.fixXS1_2.z*c;
-    this.XS1_3.x=this.fixXS1_3.x*c+this.fixXS1_3.z*s;
-    this.XS1_3.z=-this.fixXS1_3.x*s+this.fixXS1_3.z*c;
+    this.XS0_0.x=fixXS0_0.x*c-fixXS0_0.z*s;
+    this.XS0_0.z=fixXS0_0.x*s+fixXS0_0.z*c;
+    this.XS0_1.x=fixXS0_1.x*c-fixXS0_1.z*s;
+    this.XS0_1.z=fixXS0_1.x*s+fixXS0_1.z*c;
+    this.XS0_2.x=fixXS0_2.x*c-fixXS0_2.z*s;
+    this.XS0_2.z=fixXS0_2.x*s+fixXS0_2.z*c;
+    this.XS0_3.x=fixXS0_3.x*c-fixXS0_3.z*s;
+    this.XS0_3.z=fixXS0_3.x*s+fixXS0_3.z*c;
+    this.XS1_0.x=fixXS1_0.x*c-fixXS1_0.z*s;
+    this.XS1_0.z=fixXS1_0.x*s+fixXS1_0.z*c;
+    this.XS1_1.x=fixXS1_1.x*c-fixXS1_1.z*s;
+    this.XS1_1.z=fixXS1_1.x*s+fixXS1_1.z*c;
+    this.XS1_2.x=fixXS1_2.x*c-fixXS1_2.z*s;
+    this.XS1_2.z=fixXS1_2.x*s+fixXS1_2.z*c;
+    this.XS1_3.x=fixXS1_3.x*c-fixXS1_3.z*s;
+    this.XS1_3.z=fixXS1_3.x*s+fixXS1_3.z*c;
+    this.XS0_0.update();
+    this.XS0_1.update();
+    this.XS0_2.update();
+    this.XS0_3.update();
+    this.XS1_0.update();
+    this.XS1_1.update();
+    this.XS1_2.update();
+    this.XS1_3.update();
 };
 cube.prototype.z_transform = function(){
     var s=Math.sin(this.ZAxisAngle/180*Math.PI);
     var c=Math.cos(this.ZAxisAngle/180*Math.PI);
-    this.XS0_0.x=this.fixXS0_0.x*c-this.fixXS0_0.y*s;
-    this.XS0_0.y=this.fixXS0_0.x*s+this.fixXS0_0.y*c;
-    this.XS0_1.x=this.fixXS0_1.x*c-this.fixXS0_1.y*s;
-    this.XS0_1.y=this.fixXS0_1.x*s+this.fixXS0_1.y*c;
-    this.XS0_2.x=this.fixXS0_2.x*c-this.fixXS0_2.y*s;
-    this.XS0_2.y=this.fixXS0_2.x*s+this.fixXS0_2.y*c;
-    this.XS0_3.x=this.fixXS0_3.x*c-this.fixXS0_3.y*s;
-    this.XS0_3.y=this.fixXS0_3.x*s+this.fixXS0_3.y*c;
-    this.XS1_0.x=this.fixXS1_0.x*c-this.fixXS1_0.y*s;
-    this.XS1_0.y=this.fixXS1_0.x*s+this.fixXS1_0.y*c;
-    this.XS1_1.x=this.fixXS1_1.x*c-this.fixXS1_1.y*s;
-    this.XS1_1.y=this.fixXS1_1.x*s+this.fixXS1_1.y*c;
-    this.XS1_2.x=this.fixXS1_2.x*c-this.fixXS1_2.y*s;
-    this.XS1_2.y=this.fixXS1_2.x*s+this.fixXS1_2.y*c;
-    this.XS1_3.x=this.fixXS1_3.x*c-this.fixXS1_3.y*s;
-    this.XS1_3.y=this.fixXS1_3.x*s+this.fixXS1_3.y*c;
+    this.XS0_0.x=fixXS0_0.x*c+fixXS0_0.y*s;
+    this.XS0_0.y=-fixXS0_0.x*s+fixXS0_0.y*c;
+    this.XS0_1.x=fixXS0_1.x*c+fixXS0_1.y*s;
+    this.XS0_1.y=-fixXS0_1.x*s+fixXS0_1.y*c;
+    this.XS0_2.x=fixXS0_2.x*c+fixXS0_2.y*s;
+    this.XS0_2.y=-fixXS0_2.x*s+fixXS0_2.y*c;
+    this.XS0_3.x=fixXS0_3.x*c+fixXS0_3.y*s;
+    this.XS0_3.y=-fixXS0_3.x*s+fixXS0_3.y*c;
+    this.XS1_0.x=fixXS1_0.x*c+fixXS1_0.y*s;
+    this.XS1_0.y=-fixXS1_0.x*s+fixXS1_0.y*c;
+    this.XS1_1.x=fixXS1_1.x*c+fixXS1_1.y*s;
+    this.XS1_1.y=-fixXS1_1.x*s+fixXS1_1.y*c;
+    this.XS1_2.x=fixXS1_2.x*c+fixXS1_2.y*s;
+    this.XS1_2.y=-fixXS1_2.x*s+fixXS1_2.y*c;
+    this.XS1_3.x=fixXS1_3.x*c+fixXS1_3.y*s;
+    this.XS1_3.y=-fixXS1_3.x*s+fixXS1_3.y*c;
+    this.XS0_0.update();
+    this.XS0_1.update();
+    this.XS0_2.update();
+    this.XS0_3.update();
+    this.XS1_0.update();
+    this.XS1_1.update();
+    this.XS1_2.update();
+    this.XS1_3.update();
 };
+cube.prototype.rotateYAngle=function(angle){ //立方体绕y轴旋转角度angle
+    this.XS0.line1.startPoint.pointRotateYAngle(angle);
+    console.log("XS0.line1.startPoint's cordination is x: "+this.XS0.line1.startPoint.x+" y: "+this.XS0.line1.startPoint.y+" z: "+this.XS0.line1.startPoint.z);
+    this.XS0.line1.endPoint.pointRotateYAngle(angle);
+    this.XS0.line3.startPoint.pointRotateYAngle(angle);
+    console.log("XS0.line3.startPoint's cordination is x: "+this.XS0.line3.startPoint.x+" y: "+this.XS0.line3.startPoint.y+" z: "+this.XS0.line3.startPoint.z);
+
+    this.XS0.line3.endPoint.pointRotateYAngle(angle);
+    this.XS1.line1.startPoint.pointRotateYAngle(angle);
+    this.XS1.line1.endPoint.pointRotateYAngle(angle);
+    this.XS1.line3.startPoint.pointRotateYAngle(angle);
+    this.XS1.line3.endPoint.pointRotateYAngle(angle);
+}
+cube.prototype.rotateZAngle=function(angle) { //立方体绕z轴旋转角度angle
+    this.XS0.line1.startPoint.pointRotateZAngle(angle);
+    console.log("XS0.line1.startPoint's cordination is x: "+this.XS0.line1.startPoint.x+" y: "+this.XS0.line1.startPoint.y+" z: "+this.XS0.line1.startPoint.z);
+    this.XS0.line1.endPoint.pointRotateZAngle(angle);
+    this.XS0.line3.startPoint.pointRotateZAngle(angle);
+    console.log("XS0.line3.startPoint's cordination is x: "+this.XS0.line3.startPoint.x+" y: "+this.XS0.line3.startPoint.y+" z: "+this.XS0.line3.startPoint.z);
+    this.XS0.line3.endPoint.pointRotateZAngle(angle);
+    this.XS1.line1.startPoint.pointRotateZAngle(angle);
+    this.XS1.line1.endPoint.pointRotateZAngle(angle);
+    this.XS1.line3.startPoint.pointRotateZAngle(angle);
+    this.XS1.line3.endPoint.pointRotateZAngle(angle);
+}
 //initialize 立方体的中心在三维坐标系的原点位置
 var pointXS0_0=new point(100,-100,100,Color.YELLOW);
 var pointXS0_1=new point(100,100,100,Color.YELLOW);
@@ -159,12 +340,10 @@ var YS1=new surface(lineYS1_01,lineXS1_30,lineYS1_23,lineXS0_30,Color.GRAY);
 var ZS0=new surface(lineYS0_01,lineXS1_01,lineYS1_01,lineXS0_01,Color.YELLOW);
 var ZS1=new surface(lineYS0_23,lineXS1_23,lineYS1_23,lineXS0_23,Color.GREEN);
 
-var fix_pointXS0_0=new point(100,-100,100,Color.YELLOW);
-var fix_pointXS0_1=new point(100,100,100,Color.YELLOW);
-var fix_pointXS0_2=new point(100,100,-100,Color.RED);
-var fix_pointXS0_3=new point(100,-100,-100,Color.RED);
-var fix_pointXS1_0=new point(-100,-100,100,Color.CYAN);
-var fix_pointXS1_1=new point(-100,100,100,Color.CYAN);
-var fix_pointXS1_2=new point(-100,100,-100,Color.GREEN);
-var fix_pointXS1_3=new point(-100,-100,-100,Color.GREEN)
 
+var c = document.getElementById("myCanvas");
+var ctx = c.getContext("2d");
+//ctx.fillStyle="#FF0000";
+//ctx.fillRect(0,0,150,75);
+var imgData = ctx.getImageData(0, 0, width, height);
+var img = new RGBAImage(imgData.width, imgData.height, imgData.data);
