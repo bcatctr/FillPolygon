@@ -49,6 +49,12 @@ line_2D.prototype.getXValue=function(y){
             return this.endPoint.x;
         }
     }
+    else if(Math.abs(y-this.startPoint.y)<1){
+        return this.startPoint.x;
+    }
+    else if(Math.abs(y-this.endPoint.y)<1){
+        return this.endPoint.x;
+    }
     else{
         return (-this.b*y-this.c)/this.a;
 
@@ -58,6 +64,9 @@ line_2D.prototype.getXIncre=function(){
     if(this.a==0){
         return 0;
 
+    }
+    else if(this.b==0){
+        return 0;
     }
     else{
         return -this.b/this.a;
@@ -90,7 +99,12 @@ fourSidePolygon_2D.prototype.setViewable=function(v){
     this.viewable=v;
 }
 cube.prototype.executeProjection = function() {
-
+    var c = document.getElementById("myCanvas");
+    var ctx = c.getContext("2d");
+    //ctx.fillStyle="#FF0000";
+    //ctx.fillRect(0,0,150,75);
+    var imgData = ctx.getImageData(0, 0, width, height);
+    var img = new RGBAImage(imgData.width, imgData.height, imgData.data);
     //var img=new RGBAImage(800,400);
     //设置背景颜色为黑色
     for (var i = 0; i < img.w; i++) {
@@ -104,7 +118,7 @@ cube.prototype.executeProjection = function() {
     pointXS[0] = new Array(4);
     pointXS[1] = new Array(4);
     pointXS[0][0] = new Point_2D(this.XS0.line1.startPoint.pj_x, this.XS0.line1.startPoint.pj_y, this.XS0.line1.startPoint.color);
-    console.log("pointXS[0][0]'s x:"+pointXS[0][0].x+" y: "+pointXS[0][0].y);
+    //console.log("pointXS[0][0]'s x:"+pointXS[0][0].x+" y: "+pointXS[0][0].y);
     pointXS[0][1] = new Point_2D(this.XS0.line1.endPoint.pj_x,this.XS0.line1.endPoint.pj_y, this.XS0.line1.endPoint.color);
     pointXS[0][2] = new Point_2D(this.XS0.line3.startPoint.pj_x, this.XS0.line3.startPoint.pj_y, this.XS0.line3.startPoint.color);
     pointXS[0][3] = new Point_2D(this.XS0.line3.endPoint.pj_x, this.XS0.line3.endPoint.pj_y, this.XS0.line3.endPoint.color);
@@ -112,7 +126,7 @@ cube.prototype.executeProjection = function() {
     pointXS[1][1] = new Point_2D(this.XS1.line1.endPoint.pj_x, this.XS1.line1.endPoint.pj_y, this.XS1.line1.endPoint.color);
     pointXS[1][2] = new Point_2D(this.XS1.line3.startPoint.pj_x, this.XS1.line3.startPoint.pj_y, this.XS1.line3.startPoint.color);
     pointXS[1][3] = new Point_2D(this.XS1.line3.endPoint.pj_x, this.XS1.line3.endPoint.pj_y, this.XS1.line3.endPoint.color);
-    console.log("pointXS[0][1]'s x:"+pointXS[0][1].x+" y: "+pointXS[0][1].y);
+    //console.log("pointXS[0][1]'s x:"+pointXS[0][1].x+" y: "+pointXS[0][1].y);
     //投影到屏幕上的边和面
     var pjEdge = new Array(12);
     var pjSurface = new Array(6);
@@ -169,17 +183,38 @@ cube.prototype.executeProjection = function() {
         pjSurface[5].setViewable(true);
     }
 
+
     for (var s = 0; s < 6; s++) {                    //对每个四边形面，首先判断该四边形面是否可见，可见的话，构造该四边形面在当前扫描线的新边表和活性边表。
         if (pjSurface[s].viewable == true) {
-            console.log("surface "+s+" is "+pjSurface[s].viewable+" its color is "+pjSurface[s].surfaceColor);
+            //console.log("surface "+s+" is "+pjSurface[s].viewable+" its color is "+pjSurface[s].surfaceColor);
 
-            var minY = Math.round(pjSurface[s].totalMinY); //四舍五入
-            var maxY = Math.round(pjSurface[s].totalMaxY);
+            var minY = parseInt(pjSurface[s].totalMinY); //四舍五入
+            var maxY = Math.ceil(pjSurface[s].totalMaxY);
             var scanningLineY;            //扫描线的y坐标
             //新边表:NET[i]表示从minY起，第i条扫描线的新边表，初始化每条扫描线的新边表
             var NET = new Array(maxY - minY + 1);
             //活性边表:AET表示当前扫描线的活性边表，
             var AET = new Array();
+            for (scanningLineY = minY; scanningLineY <= maxY; scanningLineY++) {
+                var scanningLineNum = scanningLineY - minY;      //扫描线编号
+
+                NET[scanningLineNum] = new Array();
+            }
+            for (var i = 0; i < 4; i++) {
+                scanningLineY=parseInt(pjSurface[s].line[i].minY);//每个起点取向下取整
+                scanningLineNum = scanningLineY - minY;
+                if(pjSurface[s].line[i].a!=0){
+                    var tempNETNode = new NETNode(Math.round(pjSurface[s].line[i].getXValue(scanningLineY)), pjSurface[s].line[i].getXIncre(), parseInt(pjSurface[s].line[i].maxY), pjSurface[s].surfaceColor);
+                    NET[scanningLineNum].push(tempNETNode);
+                    //console.log("surface "+s+"have a NETNode with scanning line "+scanningLineY+" and its Xvalue is"+tempNETNode.x+" its XIncre is "+tempNETNode.xIncre);
+                    //console.log("this line 's b: "+pjSurface[s].line[i].b+" c: "+pjSurface[s].line[i].c+" a: "+pjSurface[s].line[i].a);
+
+                }
+            }
+
+
+
+            /*
             for (scanningLineY = minY; scanningLineY <= maxY; scanningLineY++) {
                 console.log("jsd I love you!");
                 var scanningLineNum = scanningLineY - minY;      //扫描线编号
@@ -187,7 +222,7 @@ cube.prototype.executeProjection = function() {
                 NET[scanningLineNum] = new Array();
                 for (var i = 0; i < 4; i++) {
                     if (Math.round(pjSurface[s].line[i].minY) == scanningLineY) {
-                        if(pjSurface[s].line[i].getXIncre()!=0){
+                        if(pjSurface[s].line[i].a!=0){
                             var tempNETNode = new NETNode(Math.round(pjSurface[s].line[i].getXValue(scanningLineY)), pjSurface[s].line[i].getXIncre(), parseInt(pjSurface[s].line[i].maxY), pjSurface[s].surfaceColor);
                             NET[scanningLineNum].push(tempNETNode);
                             console.log("surface "+s+"have a NETNode with scanning line "+scanningLineY+" and its Xvalue is"+tempNETNode.x+" its XIncre is "+tempNETNode.xIncre);
@@ -197,14 +232,14 @@ cube.prototype.executeProjection = function() {
 
                     }
                 }
-            }
+            }*/
 
-            console.log("minY is "+minY+" and maxY is "+maxY);
+            //console.log("minY is "+minY+" and maxY is "+maxY);
 
             for (scanningLineY = minY; scanningLineY <= maxY; scanningLineY++) {
                 var scanningLineNum = scanningLineY - minY;      //扫描线编号
                 for (var i = 0; i < NET[scanningLineNum].length; i++) {   //把新边表NET[scanningLineNum]中的边结点用插入排序插入AET表，使之按x坐标递增顺序排列
-                    console.log("jsd I love you!");
+                    //console.log("jsd I love you!");
                     var tempAETNode = new AETNode(NET[scanningLineNum][i].x, NET[scanningLineNum][i].xIncre, NET[scanningLineNum][i].yMax, NET[scanningLineNum][i].surfaceColor);
                     if (AET.length == 0) {
                         AET.push(tempAETNode);
@@ -224,7 +259,7 @@ cube.prototype.executeProjection = function() {
                     }
                 }
                 for (var i = 0; i < AET.length; i++) {
-                    console.log("AET["+i+"] is x: "+AET[i].x+" XIncre: "+AET[i].xIncre+" yMax: "+AET[i].yMax);
+                    //console.log("AET["+i+"] is x: "+AET[i].x+" XIncre: "+AET[i].xIncre+" yMax: "+AET[i].yMax+" scanningLine Y: "+scanningLineY);
                 }
 
 
@@ -232,11 +267,11 @@ cube.prototype.executeProjection = function() {
                 //b=!b;
                 for (var i = 0; i < AET.length-1; i++) {
                     var startX =Math.round(AET[i].x);
-                    var endX =Math.round(AET[i + 1].x);c
+                    var endX =Math.round(AET[i + 1].x);
                     b = !b;
                     if (b == true) {
                         for (var x = startX; x < endX; x++) {
-                            console.log(startX,endX, scanningLineY, pjSurface[s].surfaceColor.r,pjSurface[s].surfaceColor.g,pjSurface[s].surfaceColor.b);
+                            //console.log(startX,endX, scanningLineY, pjSurface[s].surfaceColor.r,pjSurface[s].surfaceColor.g,pjSurface[s].surfaceColor.b);
                             img.setPixel(x, scanningLineY, pjSurface[s].surfaceColor);
 
                         }
@@ -244,10 +279,12 @@ cube.prototype.executeProjection = function() {
                     }
                 }
                 for (var i = 0; i < AET.length; i++) {
-                    if (AET[i].yMax <= scanningLineY) {
+                    //console.log("jsd I love you!!!");
+                    //console.log("AET["+i+"] is x: "+AET[i].x+" XIncre: "+AET[i].xIncre+" yMax: "+AET[i].yMax+" scanningLine Y: "+scanningLineY);
+                    if (AET[i].yMax <= scanningLineY+1) {
                         AET.splice(i, 1);
                     }
-                    else if (AET[i].yMax > scanningLineY) {
+                    else if (AET[i].yMax > scanningLineY+1) {
                         AET[i].x = AET[i].x + AET[i].xIncre;
                         var temp=AET[i];
                         for(var j=i+1;j<AET.length;j++){         //冒泡排序
@@ -261,6 +298,8 @@ cube.prototype.executeProjection = function() {
                         }
                         if(j<AET.length){
                             AET[j-1]=temp;
+                            var newJ=j-1;
+                            //console.log("AET["+newJ+"] is x: "+AET[j-1].x+" XIncre: "+AET[j-1].xIncre+" yMax: "+AET[j-1].yMax);
                         }
                         else{
                             AET[AET.length-1]=temp;
@@ -298,14 +337,13 @@ function AETNode(x,xIncre,yMax,color){
     this.surfaceColor=color;     //所属面的颜色
 }
 var MyCube=new cube(XS0,XS1,YS0,YS1,ZS0, ZS1);
-//MyCube.YAxisAngle=30;
-//MyCube.ZAxisAngle=30;
-//MyCube.y_transform();
-//MyCube.z_transform();
-MyCube.transform(0,50,-30);
-//MyCube.rotateYAngle(30);
+//MyCube.rotateYAngle(3);
 //MyCube.rotateZAngle(30);
-MyCube.executeProjection();
+var initial_X = 0;
+var initial_Y = 80;
+var initial_Z = 30;
+MyCube.transform(initial_X,initial_Y,initial_Z,0);
+//MyCube.update_pre();
 //console.log(MyCube.XS0_0.x,MyCube.XS0_0.y,MyCube.XS0_0.z,MyCube.XS0_0.pj_x,MyCube.XS0_0.pj_y);
 //console.log(MyCube.XS0_1.x,MyCube.XS0_1.y,MyCube.XS0_1.z,MyCube.XS0_1.pj_x,MyCube.XS0_1.pj_y);
 //console.log(MyCube.XS0_2.x,MyCube.XS0_2.y,MyCube.XS0_2.z,MyCube.XS0_2.pj_x,MyCube.XS0_2.pj_y);
@@ -314,3 +352,15 @@ MyCube.executeProjection();
 //console.log(MyCube.XS1_1.x,MyCube.XS1_1.y,MyCube.XS1_1.z,MyCube.XS1_1.pj_x,MyCube.XS1_1.pj_y);
 //console.log(MyCube.XS1_2.x,MyCube.XS1_2.y,MyCube.XS1_2.z,MyCube.XS1_2.pj_x,MyCube.XS1_2.pj_y);
 //console.log(MyCube.XS1_3.x,MyCube.XS1_3.y,MyCube.XS1_3.z,MyCube.XS1_3.pj_x,MyCube.XS1_3.pj_y);
+//console.log(1);
+//console.log(preXS0_0.x,preXS0_0.y,preXS0_0.z,preXS0_0.pj_x,preXS0_0.pj_y);
+//console.log(preXS0_1.x,preXS0_1.y,preXS0_1.z,preXS0_1.pj_x,preXS0_1.pj_y);
+//console.log(preXS0_2.x,preXS0_2.y,preXS0_2.z,preXS0_2.pj_x,preXS0_2.pj_y);
+//console.log(preXS0_3.x,preXS0_3.y,preXS0_3.z,preXS0_3.pj_x,preXS0_3.pj_y);
+//console.log(preXS1_0.x,preXS1_0.y,preXS1_0.z,preXS1_0.pj_x,preXS1_0.pj_y);
+//console.log(preXS1_1.x,preXS1_1.y,preXS1_1.z,preXS1_1.pj_x,preXS1_1.pj_y);
+//console.log(preXS1_2.x,preXS1_2.y,preXS1_2.z,preXS1_2.pj_x,preXS1_2.pj_y);
+//console.log(preXS1_3.x,preXS1_3.y,preXS1_3.z,preXS1_3.pj_x,preXS1_3.pj_y);
+//MyCube.transform(0,0,1,1);
+
+MyCube.executeProjection();
