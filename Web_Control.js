@@ -17,7 +17,7 @@ function bindMouseEvent(el,mycube){
                 mycube.YAxisAngle=0;
                 mycube.ZAxisAngle=0;
                 //console.log(x, y);
-                el.onmousemove = function (e) {
+                el.onmousemove = function (e) {        //鼠标移动事件
                     var delta_X = (e.clientX - x)/2;
                     var delta_Y = (e.clientY - y)/2;
                     console.log(delta_X, delta_Y);
@@ -49,6 +49,7 @@ function bindMouseEvent(el,mycube){
             var cy = (mycube.XS0_0.x*t1+mycube.XS0_0.y*t2)/(t1*t1+t2*t2);
             scaley.onupdate(Math.round(Math.atan2(cb,sb)/Math.PI*180));
             scalez.onupdate(Math.round(Math.atan2(cy,sy)/Math.PI*180));
+            scalex.onupdate(Math.round((Math.atan2(cb,sb)/Math.PI*180+Math.atan2(cy,sy)/Math.PI*180)%360));
         }
 }
 //scale bar 数据条
@@ -81,7 +82,7 @@ scale.prototype={
             var l=this.offsetLeft;
             //var max=f.bar.offsetWidth-this.offsetWidth;
             //console.log(max);
-            g.onmousemove=function (e){
+            g.onmousemove=function (e){      //scale bar拖动以及立方体旋转实现
                 var thisX=(e||b.event).clientX;
                 var to=m.min(max,m.max(-2,l+(thisX-x)));
 
@@ -101,12 +102,12 @@ scale.prototype={
             g.onmouseup=new Function('this.onmousemove=null');
         };
     },
-    ondrag:function (pos,x){
+    ondrag:function (pos,x){            //图形拖动效果
         this.btn.style.left=x+'px';
         this.step.style.width=Math.max(0,x)+'px';
         this.title.innerHTML=pos+'&deg;';
     },
-    onupdate:function(angle){
+    onupdate:function(angle){           //scale bar拖动到到angle位置
         this.value=angle;
         var max=this.bar.offsetWidth-this.btn.offsetWidth;
         var standardAngle = (angle+360)%360;

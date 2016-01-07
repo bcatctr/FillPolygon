@@ -117,10 +117,11 @@ function cube(XS0,XS1,YS0,YS1,ZS0,ZS1){
     this.ZAxisAngle=0;
 }
 cube.prototype.transform = function(x,y,z,mode){   //´Ó»ù×¼Õý·½ÐÎ¿ªÊ¼Ðý×ª»òÕß´Óµ±Ç°Õý·½ÐÎ¿ªÊ¼Ðý×ª
-    if(mode==0){
+    if(mode==0){          //mode==0 ÒÔfixXSÏµÁÐµÄµã×÷Îª³õÊ¼½øÐÐÐý×ª£¬ÓÃÓÚscale barÐý×ª
         this.XAxisAngle=x;
         this.YAxisAngle=y;
         this.ZAxisAngle=z;
+        //XÖáÐý×ª
         var s=Math.sin(this.XAxisAngle/180*Math.PI);
         var c=Math.cos(this.XAxisAngle/180*Math.PI);
         this.XS0_0.x=fixXS0_0.x;
@@ -225,10 +226,11 @@ cube.prototype.transform = function(x,y,z,mode){   //´Ó»ù×¼Õý·½ÐÎ¿ªÊ¼Ðý×ª»òÕß´Óµ
         this.XS1_1.update();
         this.XS1_2.update();
         this.XS1_3.update();
-    }else{
+    }else{                                    //ÒÔpreXSÏµÁÐµÄµã×÷Îª³õÊ¼½øÐÐÐý×ª£¬ÓÃÓÚÍÏ×§Ðý×ª
         this.XAxisAngle=x;
         this.YAxisAngle=y;
         this.ZAxisAngle=z;
+        //XÖá
         var s=Math.sin(this.XAxisAngle/180*Math.PI);
         var c=Math.cos(this.XAxisAngle/180*Math.PI);
         this.XS0_0.x=preXS0_0.x;
@@ -255,7 +257,7 @@ cube.prototype.transform = function(x,y,z,mode){   //´Ó»ù×¼Õý·½ÐÎ¿ªÊ¼Ðý×ª»òÕß´Óµ
         this.XS1_3.x=preXS1_3.x;
         this.XS1_3.y=preXS1_3.y*c+preXS1_3.z*s;
         this.XS1_3.z=-preXS1_3.y*s+preXS1_3.z*c;
-        //
+        //YÖá
         s=Math.sin(this.YAxisAngle/180*Math.PI);
         c=Math.cos(this.YAxisAngle/180*Math.PI);
         var temp1 = this.XS0_0.x;
@@ -290,7 +292,7 @@ cube.prototype.transform = function(x,y,z,mode){   //´Ó»ù×¼Õý·½ÐÎ¿ªÊ¼Ðý×ª»òÕß´Óµ
         temp2 = this.XS1_3.z;
         this.XS1_3.x=temp1*c-temp2*s;
         this.XS1_3.z=temp1*s+temp2*c;
-        //
+        //ZÖá
         s=Math.sin(this.ZAxisAngle/180*Math.PI);
         c=Math.cos(this.ZAxisAngle/180*Math.PI);
         temp1 = this.XS0_0.x;
@@ -334,9 +336,10 @@ cube.prototype.transform = function(x,y,z,mode){   //´Ó»ù×¼Õý·½ÐÎ¿ªÊ¼Ðý×ª»òÕß´Óµ
         this.XS1_2.update();
         this.XS1_3.update();
     }
-    //
+
 
 }
+//½«µ±Ç°Á¢·½Ìå×´Ì¬¸´ÖÆµ½preXSÏµÁÐµÄµãÖÐ
 cube.prototype.update_pre = function(){
     preXS0_0.copy(this.XS0_0);
     preXS0_1.copy(this.XS0_1);
